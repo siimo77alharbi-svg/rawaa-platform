@@ -1,8 +1,8 @@
-import { createRouter } from 'express';
+import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { authenticate } from '../middleware/auth';
 
-const router = createRouter();
+const router = Router();
 
 // Get all bookings (admin only)
 router.get('/bookings', authenticate(['admin', 'super_admin']), async (req, res) => {
@@ -50,7 +50,7 @@ router.post('/bookings', authenticate(), async (req, res) => {
 // Update booking status
 router.patch('/bookings/:id/status', authenticate(['admin', 'receptionist', 'therapist']), async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { status } = req.body;
 
     const booking = await prisma.booking.update({

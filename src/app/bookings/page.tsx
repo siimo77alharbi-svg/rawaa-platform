@@ -1,5 +1,5 @@
 "use client";
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 
 export default function BookingsPage() {

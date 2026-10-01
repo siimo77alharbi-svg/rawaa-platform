@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Users & Authentication
 model User {
   id            String   @id @default(uuid())
   email         String   @unique
@@ -20,13 +19,15 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  // Relationships
-  bookings      Booking[]
-  payments      Payment[]
-  subscriptions Subscription[]
-  loyaltyPoints LoyaltyPoint[]
-  smsLogs       SmsLog[]
-  auditLogs     AuditLog[]
+  bookings            Booking[]
+  therapistBookings   Booking[]   @relation("TherapistBookings")
+  therapistSchedules  Schedule[]  @relation("TherapistSchedules")
+  payments            Payment[]
+  subscriptions       Subscription[]
+  loyaltyPoints       LoyaltyPoint[]
+  smsLogs             SmsLog[]
+  emailLogs           EmailLog[]
+  auditLogs           AuditLog[]
 
   @@map("users")
 }
@@ -39,21 +40,20 @@ enum Role {
   SUPER_ADMIN
 }
 
-// Booking & Services
 model Service {
   id          String   @id @default(uuid())
   name        String
   description String?
   category    String
-  duration    Int      // minutes
+  duration    Int
   price       Float
   image       String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  bookings    Booking[]
-  schedules   Schedule[]
+  bookings      Booking[]
+  schedules     Schedule[]
   subscriptions Subscription[]
 
   @@map("services")
@@ -64,17 +64,18 @@ model Booking {
   userId      String
   serviceId   String
   therapistId String?
+  scheduleId  String?
   date        DateTime
   status      BookingStatus @default(PENDING)
   notes       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id])
-  service     Service  @relation(fields: [serviceId], references: [id])
-  therapist   User?    @relation("TherapistBookings", fields: [therapistId], references: [id])
-  payments    Payment[]
-  schedule    Schedule?
+  user      User     @relation(fields: [userId], references: [id])
+  service   Service  @relation(fields: [serviceId], references: [id])
+  therapist User?    @relation("TherapistBookings", fields: [therapistId], references: [id])
+  schedule  Schedule? @relation(fields: [scheduleId], references: [id])
+  payments  Payment[]
 
   @@map("bookings")
 }
@@ -92,21 +93,21 @@ model Schedule {
   serviceId   String
   therapistId String
   date        DateTime
-  duration    Int      // minutes
-  isAvailable Boolean @default(true)
+  duration    Int
+  isAvailable Boolean  @default(true)
 
-  service     Service  @relation(fields: [serviceId], references: [id])
-  therapist   User     @relation("TherapistSchedules", fields: [therapistId], references: [id])
-  booking     Booking?
+  service   Service  @relation(fields: [serviceId], references: [id])
+  therapist User     @relation("TherapistSchedules", fields: [therapistId], references: [id])
+  bookings  Booking[]
 
   @@unique([serviceId, therapistId, date])
   @@map("schedules")
 }
 
-// Payments & POS
 model Payment {
   id          String   @id @default(uuid())
-  bookingId   String
+  userId      String?
+  bookingId   String?
   amount      Float
   method      PaymentMethod
   status      PaymentStatus @default(PENDING)
@@ -114,7 +115,8 @@ model Payment {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  booking     Booking  @relation(fields: [bookingId], references: [id])
+  user    User?    @relation(fields: [userId], references: [id])
+  booking Booking? @relation(fields: [bookingId], references: [id])
 
   @@map("payments")
 }
@@ -135,24 +137,22 @@ enum PaymentStatus {
   FAILED
 }
 
-// Subscriptions & Memberships
 model Subscription {
-  id          String   @id @default(uuid())
-  userId      String
-  serviceId   String
-  planType    SubscriptionPlan
-  sessions    Int
-  usedSessions Int @default(0)
-  startDate   DateTime @default(now())
-  endDate     DateTime?
-  totalAmount Float
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  userId       String
+  serviceId    String
+  planType     SubscriptionPlan
+  sessions     Int
+  usedSessions Int      @default(0)
+  startDate    DateTime @default(now())
+  endDate      DateTime?
+  totalAmount  Float
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id])
-  service     Service  @relation(fields: [serviceId], references: [id])
-  payments    Payment[]
+  user    User    @relation(fields: [userId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
 
   @@map("subscriptions")
 }
@@ -164,7 +164,6 @@ enum SubscriptionPlan {
   VIP
 }
 
-// CRM & Loyalty
 model LoyaltyPoint {
   id          String   @id @default(uuid())
   userId      String
@@ -172,21 +171,21 @@ model LoyaltyPoint {
   description String?
   createdAt   DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@map("loyalty_points")
 }
 
 model Coupon {
-  id          String   @id @default(uuid())
-  code        String   @unique
-  type        CouponType
-  value       Float
-  maxUses     Int?
-  uses        Int      @default(0)
-  expiresAt   DateTime?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  code      String   @unique
+  type      CouponType
+  value     Float
+  maxUses   Int?
+  uses      Int      @default(0)
+  expiresAt DateTime?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 
   @@map("coupons")
 }
@@ -197,17 +196,16 @@ enum CouponType {
   FREE_SESSION
 }
 
-// Notifications (SMS & Email)
 model SmsLog {
-  id          String   @id @default(uuid())
-  userId      String
-  phone       String
-  message     String
-  type        SmsType
-  status      SmsStatus @default(SENT)
-  sentAt      DateTime @default(now())
+  id      String   @id @default(uuid())
+  userId  String?
+  phone   String
+  message String
+  type    SmsType
+  status  SmsStatus @default(SENT)
+  sentAt  DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [userId], references: [id])
 
   @@map("sms_logs")
 }
@@ -226,35 +224,35 @@ enum SmsStatus {
 }
 
 model EmailLog {
-  id          String   @id @default(uuid())
-  userId      String
-  email       String
-  subject     String
-  body        String
-  type        String
-  status      String
-  sentAt      DateTime @default(now())
+  id      String   @id @default(uuid())
+  userId  String?
+  email   String
+  subject String
+  body    String
+  type    String
+  status  String
+  sentAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
 
   @@map("email_logs")
 }
 
-// Audit Logs
 model AuditLog {
-  id          String   @id @default(uuid())
-  userId      String
-  action      String
-  entity      String
-  entityId    String?
-  details     String?
-  ipAddress   String?
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@map("audit_logs")
 }
 
-// Products (for POS)
 model Product {
   id          String   @id @default(uuid())
   name        String
@@ -267,16 +265,18 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  cartItems CartItem[]
+
   @@map("products")
 }
 
 model CartItem {
-  id          String   @id @default(uuid())
-  productId   String
-  quantity    Int      @default(1)
-  addedAt     DateTime @default(now())
+  id        String   @id @default(uuid())
+  productId String
+  quantity  Int      @default(1)
+  addedAt   DateTime @default(now())
 
-  product     Product  @relation(fields: [productId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
 
   @@map("cart_items")
 }
