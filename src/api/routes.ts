@@ -90,7 +90,7 @@ router.post('/services', authenticate(['admin', 'super_admin']), async (req, res
 });
 
 // Payments
-router.get('/payments', authenticate(['admin', 'receptionist']), async (req, res) => {
+router.get('/payments', authenticate(), async (req, res) => {
   try {
     const payments = await prisma.payment.findMany({
       include: {
@@ -109,23 +109,100 @@ router.get('/payments', authenticate(['admin', 'receptionist']), async (req, res
   }
 });
 
-// Create payment
-router.post('/payments', authenticate(), async (req, res) => {
+// Get payment history for user
+router.get('/payments/history', authenticate(), async (req, res) => {
   try {
-    const { bookingId, amount, method } = req.body;
+    const userId = req.user.id;
+    const payments = await prisma.payment.findMany({
+      where: { userId },
+      include: {
+        booking: {
+          include: {
+            service: true,
+            therapist: { select: { name: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(payments);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching payment history' });
+  }
+});
+
+// Process payment
+router.post('/payments/process', authenticate(), async (req, res) => {
+  try {
+    const { bookingId, amount, method, notes } = req.body;
+    const userId = req.user.id;
+
+    if (!bookingId) {
+      return res.status(400).json({ error: 'bookingId is required' });
+    }
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Valid amount is required' });
+    }
+    if (!['CASH', 'CARD', 'TRANSFER'].includes(method)) {
+      return res.status(400).json({ error: 'Invalid payment method' });
+    }
+
+    // Generate receipt number
+    const receiptNo = `REC-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
     const payment = await prisma.payment.create({
       data: {
         bookingId,
+        userId,
         amount,
         method,
         status: 'COMPLETED',
+        receiptNo,
       },
+      include: {
+        booking: {
+          include: {
+            service: true,
+            user: { select: { name: true, email: true } },
+          },
+        },
+      },
+    });
+
+    // Update booking status to confirmed
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: 'CONFIRMED' },
     });
 
     res.status(201).json(payment);
   } catch (error) {
-    res.status(500).json({ error: 'Error creating payment' });
+    console.error('Payment error:', error);
+    res.status(500).json({ error: 'Error processing payment' });
+  }
+});
+
+// Get payment by ID
+router.get('/payments/:id', authenticate(), async (req, res) => {
+  try {
+    const payment = await prisma.payment.findUnique({
+      where: { id: req.params.id as string },
+      include: {
+        booking: {
+          include: {
+            service: true,
+            user: { select: { name: true, email: true } },
+            therapist: { select: { name: true } },
+          },
+        },
+      },
+    });
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+    res.json(payment);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching payment' });
   }
 });
 
