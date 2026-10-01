@@ -1,6 +1,13 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { authenticate } from '../middleware/auth';
+import {
+  sendBookingConfirmation,
+  sendAppointmentReminder,
+  sendPromoMessage,
+  sendGeneralNotification,
+  getNotificationLogs,
+} from '../lib/notifications';
 
 const router = Router();
 
@@ -265,6 +272,104 @@ router.get('/stats', authenticate(['admin', 'receptionist', 'therapist']), async
     });
   } catch (error) {
     res.status(500).json({ error: 'Error fetching stats' });
+  }
+});
+
+// ===== Notification Routes =====
+
+// Send booking confirmation
+router.post('/notifications/booking-confirmation', authenticate(['admin', 'receptionist']), async (req, res) => {
+  try {
+    const { userId, serviceId, bookingId } = req.body;
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { user: true, service: true },
+    });
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    const results = await sendBookingConfirmation(
+      booking.user.id,
+      booking.user.name,
+      booking.user.phone,
+      booking.user.email,
+      booking.service.name,
+      booking.date.toISOString().split('T')[0]
+    );
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error('Error sending booking confirmation:', error);
+    res.status(500).json({ error: 'Error sending booking confirmation' });
+  }
+});
+
+// Send appointment reminder
+router.post('/notifications/reminder', authenticate(['admin', 'receptionist']), async (req, res) => {
+  try {
+    const { bookingId } = req.body;
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { user: true, service: true },
+    });
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    const results = await sendAppointmentReminder(
+      booking.user.id,
+      booking.user.name,
+      booking.user.phone,
+      booking.user.email,
+      booking.service.name,
+      booking.date.toISOString().split('T')[0]
+    );
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error('Error sending reminder:', error);
+    res.status(500).json({ error: 'Error sending reminder' });
+  }
+});
+
+// Send promo message
+router.post('/notifications/promo', authenticate(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const { userId, offer } = req.body;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const results = await sendPromoMessage(user.id, user.name, user.phone, user.email, offer);
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error('Error sending promo:', error);
+    res.status(500).json({ error: 'Error sending promo' });
+  }
+});
+
+// Send general notification
+router.post('/notifications/general', authenticate(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const { userId, message } = req.body;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const results = await sendGeneralNotification(user.id, user.name, user.phone, user.email, message);
+    res.json({ success: true, results });
+  } catch (error) {
+    console.error('Error sending notification:', error);
+    res.status(500).json({ error: 'Error sending notification' });
+  }
+});
+
+// Get notification logs
+router.get('/notifications/logs', authenticate(['admin', 'receptionist', 'therapist']), async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 50;
+    const logs = await getNotificationLogs(limit);
+    res.json(logs);
+  } catch (error) {
+    console.error('Error fetching notification logs:', error);
+    res.status(500).json({ error: 'Error fetching notification logs' });
   }
 });
 

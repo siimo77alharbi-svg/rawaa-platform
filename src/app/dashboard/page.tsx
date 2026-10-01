@@ -62,6 +62,16 @@ export default function DashboardPage() {
           <StatCard title="إجمالي المستخدمين" value={stats?.usersTotal || 0} color="purple" />
         </div>
 
+        {/* Quick Links */}
+        <div className="flex gap-4 mb-6">
+          <a href="/admin/notifications" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            الإشعارات
+          </a>
+          <a href="/admin/users" className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+            المستخدمون
+          </a>
+        </div>
+
         {/* Recent Bookings */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-semibold mb-4">آخر الحجوزات</h2>
