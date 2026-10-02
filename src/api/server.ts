@@ -6,7 +6,7 @@ import apiRoutes from './routes/api';
 import { prisma } from '../lib/prisma';
 
 const app = express();
-const port = process.env.PORT || 4000;
+const port = process.env.API_PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
