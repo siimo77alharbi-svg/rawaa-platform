@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# منصة رواء الصحية
 
-## Getting Started
+منصة رقمية متكاملة لإدارة المنتجعات الصحية واللياقة البدنية في المملكة العربية السعودية.
 
-First, run the development server:
+## 🚀 المميزات
+
+### نظام الحجز
+- حجز مواعيد عبر الإنترنت
+- إدارة الجدولة
+- تذكيرات تلقائية
+
+### نظام المدفوعات
+- بوابات دفع متعددة (مدى، فيزا، ماستركارد، Apple Pay، STC Pay)
+- تقسيط (تمارا، تابي)
+- فواتير إلكترونية
+- نظام نقاط الولاء والعضويات
+
+### الإشعارات
+- رسائل SMS تلقائية
+- إشعارات Email
+- إشعارات Push
+- قوالب رسائل قابلة للتخصيص
+
+### التحليلات والتقارير
+- لوحة تحكم شاملة
+- تقارير الإيرادات
+- تحليلات الحجوزات
+- مؤشرات الأداء (KPIs)
+
+### نقطة البيع (POS)
+- بيع المنتجات والخدمات
+- إدارة المخزون
+- فواتير نقطية
+
+### توصيات الذكاء الاصطناعي
+- مقترحات مخصصة للعملاء
+- مساعد ذكي
+- تحليل السلوك الشرائي
+
+## 🛠️ التقنيات المستخدمة
+
+- **Frontend:** Next.js 14, React, Tailwind CSS
+- **Backend:** Node.js, Express
+- **Database:** MongoDB
+- **ORM:** Prisma
+- **Authentication:** JWT, OAuth
+- **Payments:** Stripe API, Saudi Payment Gateways
+- **SMS:** Unifonic / Twilio
+
+## 📋 البدء
 
 ```bash
+# Clone the repository
+git clone https://github.com/siimo77alharbi-svg/rawaa-platform.git
+
+# Install dependencies
+cd rawaa-platform
+npm install
+
+# Set environment variables
+cp .env.example .env
+# Edit .env with your credentials
+
+# Run database migrations
+npx prisma migrate dev
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+افتح http://localhost:3000 في المتصفح.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📦 الباقات
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### الباقة الأساسية - 500 ريال/شهر
+- 3 جلسات تدليك شهرياً
+- استخدام الحمام التركي
+- خصم 10% على المنتجات
 
-## Learn More
+### الباقة الذهبية - 1200 ريال/شهر
+- 8 جلسات تدليك شهرياً
+- استخدام الحمام التركي والسونا
+- خصم 15% على المنتجات
+- أولوية الحجز
 
-To learn more about Next.js, take a look at the following resources:
+### الباقة VIP - 2500 ريال/شهر
+- جلسات غير محدودة
+- جميع المرافق مفتوحة
+- خصم 20% على المنتجات
+- مدير حساب خاص
+- أولوية الحجز المضمونة
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📞 التواصل
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- الموقع: https://rawaa-wellness.sa
+- البريد: info@rawaa-wellness.sa
+- الهاتف: +966 11 123 4567
 
-## Deploy on Vercel
+## 📄 الترخيص
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+جميع الحقوق محفوظة © 2026 منصة رواء الصحية.

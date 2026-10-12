@@ -63,9 +63,30 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Links */}
-        <div className="flex gap-4 mb-6">
-          <a href="/admin/notifications" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        <div className="flex flex-wrap gap-4 mb-6">
+          <a href="/payments" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            المدفوعات
+          </a>
+          <a href="/payments/loyalty" className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+            نقاط الولاء
+          </a>
+          <a href="/bookings" className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+            الحجوزات
+          </a>
+          <a href="/admin/notifications" className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
             الإشعارات
+          </a>
+          <a href="/dashboard/analytics" className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700">
+            التحليلات
+          </a>
+          <a href="/plans" className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">
+            الباقات
+          </a>
+          <a href="/pos" className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+            نقطة البيع
+          </a>
+          <a href="/ai-recommendations" className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700">
+            توصيات AI
           </a>
           <a href="/admin/users" className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
             المستخدمون
